@@ -15,11 +15,13 @@ type Child {
 
 type Query {
   allPersons(last: Int): [Person!]!
+
   personById(id: ID): Person
 }
 
 type Mutation {
   createPerson(name: String!, age: Int!): Person!
+
   newChild(
     parentId: ID!,
     name: String!,
