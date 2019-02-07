@@ -1,11 +1,12 @@
 type Person {
-  id: ID
+  id: ID!
   name: String!
   age: Int!
   children: [Child!]!
 }
 
 type Child {
+  id: ID!
   name: String!
   age: Int!
   parentId: ID!
@@ -19,4 +20,10 @@ type Query {
 
 type Mutation {
   createPerson(name: String!, age: Int!): Person!
+  newChild(
+    parentId: ID!,
+    name: String!,
+    age: Int!,
+    favoriteCartoonId: Int!
+  ): Person!
 }

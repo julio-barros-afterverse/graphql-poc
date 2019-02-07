@@ -53,6 +53,7 @@ class GraphQLProvider(val fetchers: GraphQLDataFetchers) {
             .type(
                 newTypeWiring("Mutation")
                     .dataFetcher("createPerson", fetchers.createPerson)
+                    .dataFetcher("newChild", fetchers.newChild)
             )
             .build()
     }
