@@ -8,8 +8,8 @@ package com.movile.playkids.graphql.model
 typealias PersonId = String
 
 data class Person(
-    val id: PersonId,
-    val name: String,
-    val age: Int,
-    val children: List<Child>
+    val id: PersonId? = null,
+    val name: String? = null,
+    val age: Int? = null,
+    val children: List<Child> = emptyList()
 )

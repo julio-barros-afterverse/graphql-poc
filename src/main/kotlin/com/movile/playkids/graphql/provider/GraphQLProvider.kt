@@ -33,7 +33,8 @@ class GraphQLProvider(val fetchers: GraphQLDataFetchers) {
         val url = Resources.getResource("schema.graphqls")
         val sdl = Resources.toString(url, Charsets.UTF_8)
         val graphQLSchema = buildSchema(sdl)
-        this.graphQL = GraphQL.newGraphQL(graphQLSchema).build()
+        this.graphQL = GraphQL.newGraphQL(graphQLSchema)
+            .build()
     }
 
     private fun buildSchema(sdl: String): GraphQLSchema {
@@ -49,6 +50,12 @@ class GraphQLProvider(val fetchers: GraphQLDataFetchers) {
                 newTypeWiring("Query")
                     .dataFetcher("allPersons", fetchers.allPersonsFetcher)
                     .dataFetcher("personById", fetchers.personByIdDataFetcher)
+            )
+            .type(
+                newTypeWiring("Person")
+                    .dataFetcher("id", fetchers.idFetcher)
+                    .dataFetcher("name", fetchers.nameFetcher)
+
             )
             .type(
                 newTypeWiring("Mutation")
