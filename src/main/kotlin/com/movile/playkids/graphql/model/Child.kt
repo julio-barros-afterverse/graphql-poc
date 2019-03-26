@@ -7,9 +7,9 @@ package com.movile.playkids.graphql.model
 typealias ChildId = String
 
 data class Child (
-    val id: ChildId,
-    val name: String,
-    val age: Int,
-    val parentId: PersonId,
-    val favoriteCartoonId: Int
+    val id: ChildId? = null,
+    val name: String? = null,
+    val age: Int? = null,
+    val parentId: PersonId? = null,
+    val favoriteCartoonId: Int? = null
 )

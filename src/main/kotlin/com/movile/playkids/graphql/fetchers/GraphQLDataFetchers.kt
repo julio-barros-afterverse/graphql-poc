@@ -3,8 +3,12 @@ package com.movile.playkids.graphql.fetchers
 import com.movile.playkids.graphql.model.Child
 import com.movile.playkids.graphql.model.Person
 import com.movile.playkids.graphql.model.PersonId
+import graphql.language.Field
 import graphql.schema.DataFetcher
+import org.springframework.jdbc.core.RowMapper
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
+import java.sql.ResultSet
 import java.util.*
 
 
@@ -13,14 +17,14 @@ import java.util.*
  * @since 2/7/19
  */
 @Component
-class GraphQLDataFetchers {
+class GraphQLDataFetchers(private val jdbc: NamedParameterJdbcTemplate) {
 
     val personByIdDataFetcher: DataFetcher<Person?> =
         DataFetcher { environment ->
             val personId = environment.getArgument<String>("id")
 
             people.firstOrNull {
-                    person -> person.id == personId
+                person -> person.id == personId
             }
         }
 
@@ -28,8 +32,61 @@ class GraphQLDataFetchers {
         DataFetcher { environment ->
             val last = environment.getArgument<Int?>("last")
 
-            people.subList(0, last ?: people.size)
+            val parentFields = environment.fields
+                .flatMap { it.selectionSet.selections }
+                .mapNotNull { it as? Field }
+
+            val filteredFields = parentFields
+                .filter { it.selectionSet == null }
+                .toSet()
+
+            val people = fetchFieldsFromLastUsers(filteredFields, last)
+
+            val children = if (parentFields.any { it.name == "children" }) {
+                val childFields = parentFields
+                    .filter { it.selectionSet != null }
+                    .flatMap { it.selectionSet.selections }
+                    .mapNotNull { it as? Field }
+                    .toSet()
+
+                fetchChildren(childFields, people.mapNotNull { it.id })
+            } else {
+                emptyList()
+            }
+                .groupBy { it.parentId }
+
+            people.map { it.copy(children = children[it.id] ?: emptyList()) }
+            //if (fields.contains("children"))
         }
+
+    private fun fetchChildren(fields: Set<Field>, people: List<PersonId>): List<Child> {
+        val fieldsQuery = fields.map { it.name }.joinToString { ", " }
+        val query = "SELECT $fieldsQuery FROM children WHERE parent_id = ANY(:ids)"
+
+        return jdbc.query(query, mapOf("ids" to people.toTypedArray())) { resultSet, _ ->
+            Child(
+                id = resultSet.getString("id"),
+                name = resultSet.getString("name"),
+                age = resultSet.getString("age")?.toIntOrNull(),
+                parentId = resultSet.getString("parent_id"),
+                favoriteCartoonId = resultSet.getString("favorite_cartoon")?.toIntOrNull()
+            )
+        }
+    }
+
+    private fun fetchFieldsFromLastUsers(fields: Set<Field>, last: Int?): List<Person> {
+        val fieldsQuery = fields.map { it.name }.joinToString { ", " }
+        val query = "SELECT $fieldsQuery FROM user ORDER BY created_at DESC" +
+                (last?.let { " LIMIT $it" } ?: "")
+
+        return jdbc.query(query) { resultSet, _ ->
+            Person(
+                id = resultSet.getString("id"),
+                name = resultSet.getString("name"),
+                age = resultSet.getString("age")?.toIntOrNull()
+            )
+        }
+    }
 
     val createPerson: DataFetcher<Person> =
         DataFetcher { environment ->

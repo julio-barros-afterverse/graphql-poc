@@ -52,12 +52,6 @@ class GraphQLProvider(val fetchers: GraphQLDataFetchers) {
                     .dataFetcher("personById", fetchers.personByIdDataFetcher)
             )
             .type(
-                newTypeWiring("Person")
-                    .dataFetcher("id", fetchers.idFetcher)
-                    .dataFetcher("name", fetchers.nameFetcher)
-
-            )
-            .type(
                 newTypeWiring("Mutation")
                     .dataFetcher("createPerson", fetchers.createPerson)
                     .dataFetcher("newChild", fetchers.newChild)
