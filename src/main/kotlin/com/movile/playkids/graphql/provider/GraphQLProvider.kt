@@ -33,7 +33,8 @@ class GraphQLProvider(val fetchers: GraphQLDataFetchers) {
         val url = Resources.getResource("schema.graphqls")
         val sdl = Resources.toString(url, Charsets.UTF_8)
         val graphQLSchema = buildSchema(sdl)
-        this.graphQL = GraphQL.newGraphQL(graphQLSchema).build()
+        this.graphQL = GraphQL.newGraphQL(graphQLSchema)
+            .build()
     }
 
     private fun buildSchema(sdl: String): GraphQLSchema {
